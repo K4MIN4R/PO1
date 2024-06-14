@@ -5,21 +5,24 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
+#include <ostream>
 #include "Player.h"
 #include "Platform.h"
 
 int SCREEN_WIDTH = 800;
 int SCREEN_HEIGHT = 600;
 const int PLATFORM_SPACING_MIN = 100;
-const int PLATFORM_SPACING_MAX = 200;
-const int PLATFORM_HORIZONTAL_RANGE = 200;
-const int PLATFORM_GENERATION_OFFSET = 200;
+const int PLATFORM_SPACING_MAX = 140;
+const int PLATFORM_HORIZONTAL_RANGE = 150;
+const int PLATFORM_GENERATION_OFFSET = 150;
 const float PLATFORM_MOVE_SPEED = 2.0f;
 
 bool isGameOver = false;
+bool firstJump = false;
 
-float generatePlatformHorizontalPosition() {
-    return SCREEN_WIDTH / 2 + (rand() % (PLATFORM_HORIZONTAL_RANGE * 2)) - PLATFORM_HORIZONTAL_RANGE;
+float generatePlatformHorizontalPosition(float previousX) {
+    return previousX + (rand() % (PLATFORM_HORIZONTAL_RANGE * 2)) - PLATFORM_HORIZONTAL_RANGE;
 }
 
 float generatePlatformVerticalPosition(float previousY) {
@@ -33,22 +36,34 @@ void drawGameOverScreen(ALLEGRO_FONT* font) {
     al_flip_display();
 }
 
+std::vector<Platform> generatePlatforms(){
+    std::vector<Platform> tmpPlatforms;
+    float initialY = SCREEN_HEIGHT - 50;
+    float previousX = SCREEN_WIDTH / 2;
+    tmpPlatforms.push_back(Platform(previousX, SCREEN_HEIGHT - 10));
+    for (int i = 1; i < 10; ++i) {
+        previousX = tmpPlatforms[i - 1].getX();
+        float x = generatePlatformHorizontalPosition(previousX);
+        float y = generatePlatformVerticalPosition(initialY);
+        tmpPlatforms.push_back(Platform(x, y));
+        initialY = y;
+    }
+    return tmpPlatforms;
+}
+
 void resetGame(Player& player, std::vector<Platform>& platforms) {
+    firstJump = false;
     player.setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50);
     player.resetVelocity();
 
     platforms.clear();
 
-    float initialY = SCREEN_HEIGHT - 50;
-    for (int i = 0; i < 10; ++i) {
-        float x = generatePlatformHorizontalPosition();
-        float y = generatePlatformVerticalPosition(initialY);
-        platforms.push_back(Platform(x, y));
-        initialY = y;
-    }
+    platforms = generatePlatforms();
 
     isGameOver = false;
 }
+
+
 
 int main() {
     if (!al_init()) {
@@ -80,20 +95,10 @@ int main() {
 
     bool running = true;
     bool redraw = true;
-
-    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50);
-    std::vector<Platform> platforms;
-
     srand(time(nullptr));
-
-    float initialY = SCREEN_HEIGHT - 50;
-    for (int i = 0; i < 10; ++i) {
-        float x = generatePlatformHorizontalPosition();
-        float y = generatePlatformVerticalPosition(initialY);
-        platforms.push_back(Platform(x, y));
-        initialY = y;
-    }
-
+    Player player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50);
+    std::vector<Platform> platforms = generatePlatforms();     
+    std::cout << platforms.size() << std::endl;
     al_start_timer(timer);
 
     while (running) {
@@ -120,20 +125,23 @@ int main() {
                 }
 
                 float minY = player.getY() - SCREEN_HEIGHT + PLATFORM_GENERATION_OFFSET;
-                if (platforms.empty() || platforms.back().getY() > minY) {
+               if (platforms.empty() || platforms.back().getY() > minY) {
                     float initialY = platforms.empty() ? SCREEN_HEIGHT - 50 : platforms.back().getY();
+                    float previousX = 0;
                     for (int i = 0; i < 3; ++i) {
-                        float x = generatePlatformHorizontalPosition();
+                        previousX = platforms[platforms.size() - 1].getX();
+                        float x = generatePlatformHorizontalPosition(previousX);
                         float y = generatePlatformVerticalPosition(initialY);
                         platforms.push_back(Platform(x, y));
                         initialY = y;
                     }
-                }
 
-                for (Platform& platform : platforms) {
-                    platform.moveDown(PLATFORM_MOVE_SPEED);
                 }
-
+               if(firstJump){
+                    for (Platform& platform : platforms) {
+                        platform.moveDown(PLATFORM_MOVE_SPEED);
+                    }
+                }               
                 if (player.isOnPlatform(platforms)) {
                     for (Platform& platform : platforms) {
                         if (player.collidesWith(platform)) {
@@ -161,6 +169,8 @@ int main() {
                         player.moveRight();
                         break;
                     case ALLEGRO_KEY_SPACE:
+                        if(!firstJump)
+                            firstJump = true;
                         player.jump();
                         break;
                 }
