@@ -40,10 +40,10 @@ void Player::draw() {
 }
 
 bool Player::collidesWith(const Platform& platform) const {
-    return x + 10 > platform.getX() &&
-           x - 10 < platform.getX() + platform.getWidth() &&
-           y + 10 > platform.getY() &&
-           y - 10 < platform.getY() + platform.getHeight();
+    return x + (platform.getWidth()/2) > platform.getX() &&
+           x - (platform.getWidth()/2) < platform.getX() + platform.getWidth() &&
+           y + (platform.getHeight()/2) > platform.getY() &&
+           y - (platform.getHeight()/2) < platform.getY() + platform.getHeight();
 }
 
 void Player::landOnPlatform(const Platform& platform, float platformSpeed) {
