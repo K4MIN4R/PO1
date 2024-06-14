@@ -1,4 +1,3 @@
-
 //platform.cpp
 #include "Platform.h"
 #include <allegro5/allegro_primitives.h>
@@ -13,5 +12,5 @@ void Platform::moveDown(float speed) {
 }
 
 void Platform::draw() const {
-    al_draw_filled_rectangle(x - width / 2, y - height / 2, x + width / 2, y + height / 2, al_map_rgb(255, 255, 255));
+    al_draw_filled_rectangle(x - (width / 2), y - (height / 2), x + width + (width / 2), y + (height / 2), al_map_rgb(255, 255, 255));
 }
