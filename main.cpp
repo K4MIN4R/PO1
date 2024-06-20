@@ -21,14 +21,31 @@ const float PLATFORM_MOVE_SPEED = 2.0f;
 bool isGameOver = false;
 bool firstJump = false;
 
+/**
+ * @brief Generuje pozycję poziomą nowej platformy na podstawie poprzedniej pozycji poziomej.
+ * 
+ * @param previousX Pozycja pozioma poprzedniej platformy.
+ * @return float Nowa pozycja pozioma platformy.
+ */
 float generatePlatformHorizontalPosition(float previousX) {
     return previousX + (rand() % (PLATFORM_HORIZONTAL_RANGE * 2)) - PLATFORM_HORIZONTAL_RANGE;
 }
 
+/**
+ * @brief Generuje pozycję pionową nowej platformy na podstawie poprzedniej pozycji pionowej.
+ * 
+ * @param previousY Pozycja pionowa poprzedniej platformy.
+ * @return float Nowa pozycja pionowa platformy.
+ */
 float generatePlatformVerticalPosition(float previousY) {
     return previousY - ((rand() % (PLATFORM_SPACING_MAX - PLATFORM_SPACING_MIN)) + PLATFORM_SPACING_MIN);
 }
 
+/**
+ * @brief Rysuje ekran końca gry.
+ * 
+ * @param font Czcionka używana do wyświetlania tekstu.
+ */
 void drawGameOverScreen(ALLEGRO_FONT* font) {
     al_clear_to_color(al_map_rgb(0, 0, 0));
     al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 50, ALLEGRO_ALIGN_CENTER, "Game Over");
@@ -36,6 +53,11 @@ void drawGameOverScreen(ALLEGRO_FONT* font) {
     al_flip_display();
 }
 
+/**
+ * @brief Generuje początkowy zestaw platform.
+ * 
+ * @return std::vector<Platform> Wektor zawierający wygenerowane platformy.
+ */
 std::vector<Platform> generatePlatforms(){
     std::vector<Platform> tmpPlatforms;
     float initialY = SCREEN_HEIGHT - 50;
@@ -51,6 +73,12 @@ std::vector<Platform> generatePlatforms(){
     return tmpPlatforms;
 }
 
+/**
+ * @brief Resetuje stan gry do początkowego.
+ * 
+ * @param player Obiekt gracza do zresetowania.
+ * @param platforms Wektor platform do zresetowania.
+ */
 void resetGame(Player& player, std::vector<Platform>& platforms) {
     firstJump = false;
     player.setPosition(SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50);
@@ -63,8 +91,13 @@ void resetGame(Player& player, std::vector<Platform>& platforms) {
     isGameOver = false;
 }
 
-
-
+/**
+ * @brief Główna funkcja programu.
+ * 
+ * Inicjalizuje Allegro, tworzy okno gry, uruchamia pętlę główną gry.
+ * 
+ * @return int Status zakończenia programu.
+ */
 int main() {
     if (!al_init()) {
         return -1;
